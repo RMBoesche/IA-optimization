@@ -1,5 +1,5 @@
 import random
-
+from matplotlib import pyplot as plt
 
 def evaluate(individual):
     """
@@ -89,13 +89,12 @@ def run_ga(generations, population_size, number_of_participants, mutation_probab
     :param e:int - número de indivíduos no elitismo
     :return:list - melhor individuo encontrado
     """
-    crossover_probability = 0.8
+    crossover_probability = 0.5
     results = []
-    maior_list, menor_list, media_list = [], [], []
 
     population = create_population(population_size)
 
-    for _ in range(generations):
+    for g in range(generations):
         new_population = elitism(population, elitist_individuals)
 
         required_individuals = population_size - len(new_population)
@@ -103,13 +102,17 @@ def run_ga(generations, population_size, number_of_participants, mutation_probab
             parent1 = tournament(choose_participants(population, number_of_participants))
             parent2 = tournament(choose_participants(population, number_of_participants))
 
+            while parent1 == parent2:
+                parent2 = tournament(choose_participants(population, number_of_participants))
+
             # Crossover
-            if (random.random() < crossover_probability) and (parent1 != parent2):
+            if random.random() < crossover_probability:
+                # while parent1 == parent2:
+                #     parent2 = tournament(choose_participants(population, number_of_participants))
+
+                # index = random.randint(0, 7)
                 index = 4
-                # print('Crossover')
-                # print(parent1, parent2)
                 child1, child2 = crossover(parent1, parent2, index)
-                # print(child1, child2)
 
             else:
                 child1, child2 = parent1, parent2
@@ -123,22 +126,31 @@ def run_ga(generations, population_size, number_of_participants, mutation_probab
 
         population = new_population
 
-        maior,menor,media=printa_resultados(population)
-        maior_list.append(maior)
-        menor_list.append(menor)
-        media_list.append(media)
+        print ("STATISTICS")
+        evaluation_values = [evaluate(x) for x in population]
+        smallest = min(evaluation_values)
+        mean = sum(evaluation_values) / len(population)
+        highest = max(evaluation_values)
 
-        # Append results for this generation
-        highest = max(population, key=evaluate)
-        mean = sum([evaluate(x) for x in population]) / len(population)
-        smallest = min(population, key=evaluate)
-        results.append([highest, mean, smallest])
+        results.append((smallest, mean, highest))
+        print(results[g])
 
-    # # Print results
-    for i, result in enumerate(results):
-        print(f"Generation {i+1}: Highest: {result[0]} = {evaluate(result[0])}, Mean: {result[1]}, Smallest: {result[2]} = {evaluate(result[2])}")
+    x = range(len(results))
+
+    y1 = []
+    y2 = []
+    y3 = []
+    for v in results:
+        y1.append(v[0])
+        y2.append(v[1])
+        y3.append(v[2])
+
+    plt.plot(x, y1, label='Y1')
+    plt.plot(x, y2, label='Y2')
+    plt.plot(x, y3, label='Y3')
 
     return population
+
 
 def create_individual():
     individual = [random.randint(1, 8) for _ in range(8)]
@@ -157,7 +169,6 @@ def create_population(population_size):
 
 def elitism(population, elitist_individuals):
     sorted_pop = sorted(population, key=evaluate)
-    print([evaluate(x) for x in sorted_pop])
     elitist = sorted_pop[:elitist_individuals]
     return elitist
 
@@ -165,26 +176,5 @@ def elitism(population, elitist_individuals):
 def choose_participants(population, participants_tournaments):
     participants = random.sample(population, participants_tournaments)
     return participants
-
-def printa_resultados(pop):
-    maior=0
-    menor=10
-    media=0
-    for ind in pop:
-        valor_ind=evaluate(ind)
-        if valor_ind>maior:
-            maior=valor_ind
-        if valor_ind<menor:
-            menor=valor_ind
-        media+=valor_ind
-    media=media/len(pop)
-   
-    print("maior")
-    print(maior)
-    print("menor")
-    print(menor)
-    print("media")
-    print(media)
-    return  maior, menor, media
 
 
