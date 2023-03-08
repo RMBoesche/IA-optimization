@@ -1,5 +1,5 @@
 import random
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 
 def evaluate(individual):
     """
@@ -10,7 +10,6 @@ def evaluate(individual):
     :param individual:list
     :return:int numero de ataques entre rainhas no individuo recebido
     """
-
     num_lines_and_columns = 8
     num_attacks = 0
 
@@ -107,10 +106,6 @@ def run_ga(generations, population_size, number_of_participants, mutation_probab
 
             # Crossover
             if random.random() < crossover_probability:
-                # while parent1 == parent2:
-                #     parent2 = tournament(choose_participants(population, number_of_participants))
-
-                # index = random.randint(0, 7)
                 index = 4
                 child1, child2 = crossover(parent1, parent2, index)
 
@@ -126,38 +121,54 @@ def run_ga(generations, population_size, number_of_participants, mutation_probab
 
         population = new_population
 
-        print ("STATISTICS")
         evaluation_values = [evaluate(x) for x in population]
         smallest = min(evaluation_values)
         mean = sum(evaluation_values) / len(population)
         highest = max(evaluation_values)
 
         results.append((smallest, mean, highest))
-        print(results[g])
 
     x = range(len(results))
-
-    y1 = []
-    y2 = []
-    y3 = []
-    for v in results:
-        y1.append(v[0])
-        y2.append(v[1])
-        y3.append(v[2])
-
-    plt.plot(x, y1, label='Y1')
-    plt.plot(x, y2, label='Y2')
-    plt.plot(x, y3, label='Y3')
+    make_graph(results, x)
 
     return population
 
+def make_graph(results, x):
+    """
+    Cria o gráfico utilizando a biblioteca matplotlib e as informações resultantes da execução do algoritmo
+    :param results:list - lista com os valores menos, média e maior a ser plotado
+    :param x:list - eixo horizontal do gráfico
+    :return:void
+    """
+    plt_smallest = [v[0] for v in results]
+    plt_mean = [v[1] for v in results]
+    plt_highest = [v[2] for v in results]
+
+    fig, ax = plt.subplots()
+    ax.plot(x, plt_smallest, label='menor')
+    ax.plot(x, plt_mean, label='média')
+    ax.plot(x, plt_highest, label='maior')
+    ax.set_title("Número de ataques x Geração")
+    ax.set_xlabel("Geração")
+    ax.set_ylabel("Número de ataques")
+    ax.legend()
+    plt.show()
 
 def create_individual():
+    """
+    Cria um indivíduo a partir de uma lista de tamanho 8 com inteiros variando de 0 a 7 aleatoriamente
+    :return:list - indivíduo
+    """
     individual = [random.randint(1, 8) for _ in range(8)]
     return individual
 
 
 def create_population(population_size):
+    """
+    Cria uma população de tamanho population_size com indivíduos aleatórios
+    :param population_size:int - tamanho da população a ser criada
+    :return:list - população criada
+    """
     population = []
 
     for _ in range(population_size):
@@ -168,12 +179,24 @@ def create_population(population_size):
 
 
 def elitism(population, elitist_individuals):
+    """
+    Escolhe os melhores indivíduos de uma população
+    :param population:list - população a ser selecionado os melhores indivíduos
+    :param elitist_individuals:int - número de indivíduos a ser escolhidos
+    :return:list - melhores indivíduos da população
+    """
     sorted_pop = sorted(population, key=evaluate)
     elitist = sorted_pop[:elitist_individuals]
     return elitist
 
 
 def choose_participants(population, participants_tournaments):
+    """
+    Escolhe uma amostra aleatória de uma população
+    :param population:list - população a ser selecionado uma amostra
+    :param participants_tournaments:int - número de participantes nessa amostra
+    :return:list - amostra aleatória selecionada
+    """
     participants = random.sample(population, participants_tournaments)
     return participants
 
